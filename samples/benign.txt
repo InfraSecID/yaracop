@@ -1,0 +1,3 @@
+Hello World!
+This is a completely harmless benign text document used for testing yaracop v1.1.0.
+Everything in this file is normal prose with standard English words and low entropy.

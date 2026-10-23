@@ -1,0 +1,4 @@
+LoadLibraryA GetProcAddress VirtualProtect IsDebuggerPresent NtUnmapViewOfSection
+URLDownloadToFileA WinExec ShellExecuteA RegSetValueExA OpenProcessToken
+AdjustTokenPrivileges LookupPrivilegeValueA CreateMutexA GetTempPathA
+0x90909090 0xdeadbeef 0x414141417f8e9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f
