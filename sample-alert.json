@@ -1,0 +1,23 @@
+[
+  {
+    "timestamp": "2026-10-23T12:00:00Z",
+    "rule": {
+      "id": "100300",
+      "level": 12,
+      "description": "YARA match: Mirai",
+      "groups": ["yara", "malware"],
+      "mitre": {"id": "T1204"}
+    },
+    "agent": {"id": "000", "name": "yaracop"},
+    "data": {
+      "yara": {
+        "rule": "Mirai",
+        "file": "/tmp/malware/mirai",
+        "severity": "critical",
+        "description": "Detects Mirai botnet sample"
+      }
+    },
+    "location": "/tmp/malware/mirai",
+    "full_log": "YARA rule 'Mirai' matched file /tmp/malware/mirai"
+  }
+]
