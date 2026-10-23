@@ -8,6 +8,7 @@
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)
 
 Functional YARA scanner with JSON/HTML export, severity filtering, quarantine, VirusTotal lookup, ML heuristic detection, and Wazuh/Shuffle SOAR integration.
+<img width="1254" height="1254" alt="Neon Glitch Skull Scanner Emblem" src="https://github.com/user-attachments/assets/33704826-faef-468f-873e-74cefe4dd88d" />
 
 ## Features
 - 🦠 Scan files/folders with 11 built-in YARA rules (+ auto-updater)
