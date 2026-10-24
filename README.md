@@ -180,12 +180,6 @@ python3 integration.py shuffle --alert-file hasil.json --webhook http://localhos
 | `ModuleNotFoundError: yara` | `pip install yara-python` |
 | Wazuh auth failed | Check `--manager-url`, `--user`, `--password` |
 
----
-
-## License
-MIT
-
-< v1.1.1 update -->
 
 ---
 
@@ -236,3 +230,9 @@ python3 scanner.py scan --path samples/malware.txt --rules rules/ --vt "YOUR_API
 cd ~/Downloads
 python3 ~/yaracop/scanner.py scan --path suspicious.exe --rules ~/yaracop/rules/ --vt "YOUR_API_KEY"
 ```
+---
+
+## License
+MIT
+
+< v1.1.1 update -->
