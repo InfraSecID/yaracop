@@ -23,5 +23,5 @@ rule Suspicious_API_Chain {
         $hex2 = { DE AD BE EF }
         $hex3 = { 41 41 41 41 }
     condition:
-        5 of ($api*) or any of ($hex*)
+        8 of ($api*) and 1 of ($hex*)
 }

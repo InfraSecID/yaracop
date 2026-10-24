@@ -31,6 +31,36 @@ import yara
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
+SKIP_EXTENSIONS = {
+    # Images
+    '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.svg', '.ico', '.webp',
+    '.tiff', '.tif', '.heic', '.heif',
+    # Audio
+    '.mp3', '.wav', '.flac', '.aac', '.ogg', '.wma', '.m4a', '.opus',
+    # Video
+    '.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv', '.webm', '.m4v',
+    '.mpg', '.mpeg', '.3gp',
+    # Documents
+    '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+    '.odt', '.ods', '.odp', '.rtf', '.md',
+    # Archives
+    '.zip', '.tar', '.gz', '.rar', '.7z', '.bz2', '.xz', '.tgz',
+    # Binary / disk images
+    '.iso', '.img', '.dmg', '.vhd', '.vmdk', '.bin', '.dat',
+    # Fonts
+    '.ttf', '.otf', '.woff', '.woff2', '.eot',
+    # Databases
+    '.db', '.sqlite', '.sqlite3', '.mdb', '.accdb',
+    # Others
+    '.log', '.tmp', '.cache', '.lock', '.pid',
+}
+
+
+def is_skippable(path):
+    """Check if file extension should be skipped."""
+    return Path(path).suffix.lower() in SKIP_EXTENSIONS
+
+
 SEVERITY_ORDER = ["critical", "high", "medium", "low", "unknown"]
 
 SUSPICIOUS_APIS = [
@@ -470,7 +500,7 @@ def cmd_scan(
     raw_files = [p] if p.is_file() else [f for f in sorted(p.rglob("*")) if f.is_file()]
     files = [
         f for f in raw_files
-        if not should_exclude(f, excludes) and not is_too_large(f, max_size)
+        if not is_skippable(f) and not should_exclude(f, excludes) and not is_too_large(f, max_size)
     ]
     print(f"🔍 Scanning {len(files)} file(s)...")
 
@@ -534,6 +564,8 @@ class WatchHandler(FileSystemEventHandler):
             self._check(event.src_path)
 
     def _check(self, path):
+        if is_skippable(path):
+            return
         matches = scan_file(self.rules, path)
         if not matches:
             return
