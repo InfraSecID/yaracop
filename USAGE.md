@@ -1,22 +1,22 @@
-# yaracop v1.1.0 — Complete Usage Guide (Local)
+# 📂 yaracop v1.1.0 — Complete Usage Guide (Local)
 
-## Table of Contents
-1. Prerequisites
-2. Installation
-3. Quick Test
-4. Basic Scanning
-5. New v1.1.0 Features (`--exclude`, `--max-size`, `--severity`, `--html`, `--quarantine`, `update-rules`, `--vt`, `--ml`)
-6. Watch Mode
-7. Wazuh Integration
-8. Shuffle Integration
-9. Real-World Scenarios
-10. Troubleshooting
+## 📋 Table of Contents
+1. [Prerequisites](#1-prerequisites)
+2. [Installation](#2-installation)
+3. [Quick Test](#3-quick-test-using-built-in-samples)
+4. [Basic Scanning](#4-basic-scanning)
+5. [New v1.1.0 Features](#5-new-v110-features)
+6. [Watch Mode](#6-watch-mode-real-time-detection)
+7. [Wazuh Integration](#7-wazuh-integration-optional)
+8. [Shuffle Integration](#8-shuffle-integration-optional)
+9. [Real-World Scenarios](#9-real-world-scenarios)
+10. [Troubleshooting](#10-troubleshooting)
+11. [Scan Any Folder](#11-scan-any-folder)
+12. [Example Outputs](#12-example-outputs)
 
 ---
 
 ## 1. Prerequisites
-
-Before using yaracop, make sure you have:
 
 | Requirement | Check Command | Install |
 |-------------|---------------|---------|
@@ -27,14 +27,14 @@ Before using yaracop, make sure you have:
 
 ---
 
-## 2. Installation
+## 2. 💾 Installation
 
 ### Step 1: Enter directory
 ```bash
 cd ~/yaracop
 ```
 
-### Step 2: Install Python dependencies
+### Step 2: Install dependencies
 ```bash
 pip install -r requirements.txt
 # Or on externally managed environments:
@@ -49,16 +49,18 @@ python3 scanner.py scan --help
 
 ---
 
-## 3. Quick Test (Using Built-in `samples/`)
+## 3. 🎯 Quick Test (Using Built-in `samples/`)
 
 ```bash
 cd ~/yaracop
 python3 scanner.py scan --path samples/ --rules rules/ --summary
 ```
 
+Expected output: detects `Mirai` (critical) and `Trojan_Generic` (high).
+
 ---
 
-## 4. Basic Scanning
+## 4. 📂 Basic Scanning
 
 ### Scan a single file
 ```bash
@@ -72,7 +74,7 @@ python3 scanner.py scan --path samples/ --rules rules/ --json result.json --summ
 
 ---
 
-## 5. New v1.1.0 Features
+## 5. 🚀 New v1.1.0 Features
 
 ### 5.1 `--exclude` — Skip Specific Folders or Files
 Comma-separated list of path substrings to exclude from scanning:
@@ -127,7 +129,7 @@ python3 scanner.py scan --path samples/ --rules rules/ --ml --summary
 
 ---
 
-## 6. Watch Mode (Real-time Detection)
+## 6. 🚨 Watch Mode (Real-time Detection)
 
 ```bash
 python3 scanner.py watch --path /tmp/test-malware --rules rules/ --json live.json
@@ -135,7 +137,7 @@ python3 scanner.py watch --path /tmp/test-malware --rules rules/ --json live.jso
 
 ---
 
-## 7. Wazuh Integration (Optional)
+## 7. 🔒 Wazuh Integration (Optional)
 
 ```bash
 python3 integration.py wazuh \
@@ -147,7 +149,7 @@ python3 integration.py wazuh \
 
 ---
 
-## 8. Shuffle Integration (Optional)
+## 8. 🤖 Shuffle Integration (Optional)
 
 ```bash
 python3 integration.py shuffle \
@@ -157,119 +159,7 @@ python3 integration.py shuffle \
 
 ---
 
-## 9. Real-World Scenarios
-
-### Scenario A: Full workstation triage with HTML report & ML
-```bash
-python3 ~/yaracop/scanner.py scan \
-  --path ~/Downloads \
-  --rules ~/yaracop/rules/ \
-  --exclude .git,node_modules \
-  --max-size 25 \
-  --severity critical,high \
-  --ml \
-  --html ~/scan-report.html \
-  --summary
-```
-
-### Scenario B: Automated USB quarantine scan
-```bash
-python3 ~/yaracop/scanner.py scan \
-  --path /media/$USER/USB_DRIVE \
-  --rules ~/yaracop/rules/ \
-  --quarantine /var/quarantine \
-  --json /var/log/yaracop-usb.json \
-  --summary
-```
-
----
-
-## 10. Troubleshooting
-
-- **`ModuleNotFoundError: No module named 'sklearn'`**: Run `pip install --break-system-packages -r requirements.txt`
-- **False positives when scanning `~/yaracop`**: Use `--exclude rules,.git,__pycache__`
-- **VirusTotal `HTTP 401/403`**: Verify your VirusTotal API key passed to `--vt`
-
----
-
-**yaracop v1.1.0** — YARA Malware Scanner
-
----
-
-## 📂 Scanning Other Folders
-
-### Scan Downloads
-```bash
-cd ~/yaracop
-python3 scanner.py scan --path ~/Downloads --rules rules/ --summary
-```
-
-### Scan Documents
-```bash
-python3 scanner.py scan --path ~/Documents --rules rules/ --summary
-```
-
-### Scan Desktop
-```bash
-python3 scanner.py scan --path ~/Desktop --rules rules/ --summary
-```
-
-### Scan USB Drive
-```bash
-ls /media/$USER/
-python3 scanner.py scan --path /media/$USER/USB_NAME --rules rules/ --summary
-```
-
-### Scan Entire Home (safe mode)
-```bash
-python3 scanner.py scan --path ~ --rules rules/ \
-  --exclude .git,__pycache__,node_modules,.cache,.local,rules \
-  --max-size 50 \
-  --summary
-```
-
-### Scan Single File
-```bash
-python3 scanner.py scan --path ~/Downloads/suspicious.exe --rules rules/ --summary
-```
-
-### Scan Project Before Commit
-```bash
-cd ~/my-project
-python3 ~/yaracop/scanner.py scan --path . --rules ~/yaracop/rules/ --summary
-```
-
----
-
-## 🎯 Combo Examples
-
-### Full scan (all features)
-```bash
-python3 scanner.py scan --path ~/Downloads --rules rules/ \
-  --exclude .git,__pycache__ \
-  --max-size 50 \
-  --severity critical,high \
-  --json hasil.json \
-  --html report.html \
-  --quarantine /tmp/quarantine \
-  --ml \
-  --summary
-```
-
-### Scan + JSON + HTML
-```bash
-python3 scanner.py scan --path ~/Downloads --rules rules/ \
-  --json hasil.json --html report.html --summary
-```
-
-### Watch + JSON (real-time)
-```bash
-python3 scanner.py watch --path ~/Downloads --rules rules/ --json live.json
-```
-
----
-
-## 🌍 Real-World Scenarios
+## 9. 🌍 Real-World Scenarios
 
 ### Scenario A: Scan downloaded file
 ```bash
@@ -277,11 +167,10 @@ cd ~/Downloads
 python3 ~/yaracop/scanner.py scan --path . --rules ~/yaracop/rules/ --summary
 ```
 
-### Scenario B: Scan USB from friend
+### Scenario B: Scan project before commit
 ```bash
-ls /media/$USER/
-python3 ~/yaracop/scanner.py scan --path /media/$USER/USB_NAME \
-  --rules ~/yaracop/rules/ --quarantine /tmp/quarantine --summary
+cd ~/my-project
+python3 ~/yaracop/scanner.py scan --path . --rules ~/yaracop/rules/ --summary
 ```
 
 ### Scenario C: Daily scan with cron
@@ -291,7 +180,14 @@ crontab -e
 0 2 * * * cd ~/yaracop && python3 scanner.py scan --path ~/Downloads --rules rules/ --json ~/scan-$(date +\%Y\%m\%d).json --summary >> ~/scan.log 2>&1
 ```
 
-### Scenario D: Scan email attachments
+### Scenario D: Scan USB from friend
+```bash
+ls /media/$USER/
+python3 ~/yaracop/scanner.py scan --path /media/$USER/USB_NAME \
+  --rules ~/yaracop/rules/ --quarantine /tmp/quarantine --summary
+```
+
+### Scenario E: Scan email attachments
 ```bash
 mkdir -p /tmp/attachments
 # Extract attachments to /tmp/attachments first
@@ -300,7 +196,7 @@ python3 ~/yaracop/scanner.py scan --path /tmp/attachments --rules ~/yaracop/rule
 
 ---
 
-## 🐛 Troubleshooting (Expanded)
+## 10. 🐛 Troubleshooting
 
 ### False positive on rules/ folder
 ```bash
@@ -326,14 +222,27 @@ python3 scanner.py scan --path ~/yaracop --rules rules/ --exclude rules,.git,__p
 cp /tmp/quarantine/malware.txt.quarantined ~/yaracop/samples/malware.txt
 ```
 
-### No matches found
-- Check rules loaded: `✅ Compiled N rule file(s)`
-- Check target files: `🔍 Scanning N file(s)...`
-- Files might be clean
+### ModuleNotFoundError: No module named 'sklearn'
+```bash
+pip install --break-system-packages -r requirements.txt
+```
 
 ---
 
-## 📊 Example Outputs
+## 11. 📂 Scan Any Folder
+
+| Folder | Command |
+|--------|---------|
+| Downloads | `python3 scanner.py scan --path ~/Downloads --rules rules/ --summary` |
+| Documents | `python3 scanner.py scan --path ~/Documents --rules rules/ --summary` |
+| Desktop | `python3 scanner.py scan --path ~/Desktop --rules rules/ --summary` |
+| USB | `python3 scanner.py scan --path /media/$USER/USB_NAME --rules rules/ --summary` |
+| Home (safe) | `python3 scanner.py scan --path ~ --rules rules/ --exclude rules,.git,__pycache__ --max-size 50 --summary` |
+| Single file | `python3 scanner.py scan --path ~/Downloads/file.exe --rules rules/ --summary` |
+
+---
+
+## 12. 📊 Example Outputs
 
 ### Scan Downloads
 ```
@@ -365,3 +274,6 @@ cp /tmp/quarantine/malware.txt.quarantined ~/yaracop/samples/malware.txt
 🔒 Quarantined: samples/malware.txt → /tmp/quarantine/malware.txt.quarantined
 ```
 
+---
+
+**yaracop v1.1.0** — YARA Malware Scanner
