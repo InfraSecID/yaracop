@@ -186,3 +186,53 @@ python3 integration.py shuffle --alert-file hasil.json --webhook http://localhos
 MIT
 
 < v1.1.1 update -->
+
+---
+
+## 🦠 VirusTotal Integration (Optional)
+
+Check file hashes against VirusTotal's 70+ antivirus engines.
+
+### Get API Key (Free)
+
+1. Register at [virustotal.com](https://www.virustotal.com)
+2. Login → click username (top right) → **API Key**
+3. Copy your API key
+
+### Usage
+
+```bash
+python3 scanner.py scan --path samples/malware.txt --rules rules/ --vt "YOUR_API_KEY"
+```
+
+**Output:**
+```
+✅ Compiled 3 rule file(s)
+🔍 Scanning 1 file(s)...
+🚨 [critical] Mirai → samples/malware.txt
+🔍 VirusTotal: samples/malware.txt → 58/72 positives
+```
+
+### ⚠️ Rate Limits (Free API)
+
+| Limit | Value |
+|-------|-------|
+| Requests per minute | **4** |
+| Requests per day | **500** |
+| Commercial use | ❌ Not allowed |
+
+> **Note:** Free API is for personal/testing only. For production, use paid API.
+
+### Tips
+
+- **Don't scan large folders** with `--vt` — will hit rate limit
+- **Scan specific files** only (1-5 files at a time)
+- **Wait 15+ seconds** between scans if testing multiple files
+- **Cache results** for repeated scans (future feature)
+
+### Example: Scan downloaded file
+
+```bash
+cd ~/Downloads
+python3 ~/yaracop/scanner.py scan --path suspicious.exe --rules ~/yaracop/rules/ --vt "YOUR_API_KEY"
+```
