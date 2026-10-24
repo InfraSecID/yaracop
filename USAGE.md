@@ -1,21 +1,22 @@
 # 📂 yaracop v1.1.0 — Complete Usage Guide (Local)
 
 ## 📋 Table of Contents
-1. [Prerequisites](#1-prerequisites)
-2. [Installation](#2-installation)
-3. [Quick Test](#3-quick-test-using-built-in-samples)
-4. [Basic Scanning](#4-basic-scanning)
-5. [New v1.1.0 Features](#5-new-v110-features)
-6. [Watch Mode](#6-watch-mode-real-time-detection)
-7. [Wazuh Integration](#7-wazuh-integration-optional)
-8. [Shuffle Integration](#8-shuffle-integration-optional)
-9. [Real-World Scenarios](#9-real-world-scenarios)
-10. [Troubleshooting](#10-troubleshooting)
-11. [Scan Any Folder](#11-scan-any-folder)
-12. [Example Outputs](#12-example-outputs)
+1. [Prerequisites](#prerequisites)
+2. [Installation](#installation)
+3. [Quick Test](#quick-test)
+4. [Basic Scanning](#basic-scanning)
+5. [New v1.1.0 Features](#new-v110-features)
+6. [Watch Mode](#watch-mode)
+7. [Wazuh Integration](#wazuh-integration)
+8. [Shuffle Integration](#shuffle-integration)
+9. [Real-World Scenarios](#real-world-scenarios)
+10. [Troubleshooting](#troubleshooting)
+11. [Scan Any Folder](#scan-any-folder)
+12. [Example Outputs](#example-outputs)
 
 ---
 
+<a id="prerequisites"></a>
 ## 1. Prerequisites
 
 | Requirement | Check Command | Install |
@@ -27,6 +28,7 @@
 
 ---
 
+<a id="installation"></a>
 ## 2. 💾 Installation
 
 ### Step 1: Enter directory
@@ -49,6 +51,7 @@ python3 scanner.py scan --help
 
 ---
 
+<a id="quick-test"></a>
 ## 3. 🎯 Quick Test (Using Built-in `samples/`)
 
 ```bash
@@ -60,6 +63,7 @@ Expected output: detects `Mirai` (critical) and `Trojan_Generic` (high).
 
 ---
 
+<a id="basic-scanning"></a>
 ## 4. 📂 Basic Scanning
 
 ### Scan a single file
@@ -74,6 +78,7 @@ python3 scanner.py scan --path samples/ --rules rules/ --json result.json --summ
 
 ---
 
+<a id="new-v110-features"></a>
 ## 5. 🚀 New v1.1.0 Features
 
 ### 5.1 `--exclude` — Skip Specific Folders or Files
@@ -129,6 +134,7 @@ python3 scanner.py scan --path samples/ --rules rules/ --ml --summary
 
 ---
 
+<a id="watch-mode"></a>
 ## 6. 🚨 Watch Mode (Real-time Detection)
 
 ```bash
@@ -137,6 +143,7 @@ python3 scanner.py watch --path /tmp/test-malware --rules rules/ --json live.jso
 
 ---
 
+<a id="wazuh-integration"></a>
 ## 7. 🔒 Wazuh Integration (Optional)
 
 ```bash
@@ -149,6 +156,7 @@ python3 integration.py wazuh \
 
 ---
 
+<a id="shuffle-integration"></a>
 ## 8. 🤖 Shuffle Integration (Optional)
 
 ```bash
@@ -159,6 +167,7 @@ python3 integration.py shuffle \
 
 ---
 
+<a id="real-world-scenarios"></a>
 ## 9. 🌍 Real-World Scenarios
 
 ### Scenario A: Scan downloaded file
@@ -196,6 +205,7 @@ python3 ~/yaracop/scanner.py scan --path /tmp/attachments --rules ~/yaracop/rule
 
 ---
 
+<a id="troubleshooting"></a>
 ## 10. 🐛 Troubleshooting
 
 ### False positive on rules/ folder
@@ -229,6 +239,7 @@ pip install --break-system-packages -r requirements.txt
 
 ---
 
+<a id="scan-any-folder"></a>
 ## 11. 📂 Scan Any Folder
 
 | Folder | Command |
@@ -242,6 +253,7 @@ pip install --break-system-packages -r requirements.txt
 
 ---
 
+<a id="example-outputs"></a>
 ## 12. 📊 Example Outputs
 
 ### Scan Downloads
